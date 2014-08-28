@@ -72,8 +72,13 @@ int main ( int argc, char *argv[] )
   Long64_t numberOfEntries = treeReader->GetEntries();
   
   // Get pointers to branches used in this analysis
-  TClonesArray *branchJet        = treeReader->UseBranch("Jet");
-  TClonesArray *branchGenJet     = treeReader->UseBranch("GenJet");
+  TClonesArray *branchRawJet         = treeReader->UseBranch("RawJet");
+  TClonesArray *branchRawJetNoPU     = treeReader->UseBranch("RawJetNoPU");
+  TClonesArray *branchGenJet         = treeReader->UseBranch("GenJet");
+  TClonesArray *branchJet            = treeReader->UseBranch("Jet");
+  TClonesArray *branchPileUpJetIDJet = treeReader->UseBranch("PileUpJetIDJet");
+  TClonesArray *branchPuppiJet       = treeReader->UseBranch("PuppiJet");
+
   TClonesArray *branchElectron   = treeReader->UseBranch("Electron");
   TClonesArray *branchMuon       = treeReader->UseBranch("Muon");
   TClonesArray *branchPhoton     = treeReader->UseBranch("Photon");
@@ -85,8 +90,13 @@ int main ( int argc, char *argv[] )
 //----------------------------------------------------------------------------
 //  Example 
 //---------------------------------------------------------------------------
-  TH1 *histJet1PT = new TH1F("jet1_pt", "jet1 P_{T}", 500, 0.0, 1000);
-  TH1 *histJet1PTCorr = new TH1F("jet1_ptCorr", "jet1 corrected P_{T}", 500, 0.0, 1000);
+  TH1 *histRawJetPT = new TH1F("rawjet_pt", "Rawjet P_{T}", 200, 0.0, 200);
+  TH1 *histRawJetPTCorr = new TH1F("rawjet_ptCorr", "Rawjet corrected P_{T}", 200, 0.0, 200);
+  TH1 *histRawJetNoPUPT = new TH1F("rawjetNoPU_pt", "Rawjet NoPU P_{T}", 200, 0.0, 200);
+  TH1 *histGenJetPT = new TH1F("genjet_pt", "Genjet P_{T}", 200, 0.0, 200);
+  TH1 *histJetPT = new TH1F("jet_pt", "jet P_{T}", 200, 0.0, 200);
+  TH1 *histPUIDJetPT = new TH1F("PUIDjet_pt", "PUIDjet P_{T}", 200, 0.0, 200);
+  TH1 *histPUPPIJetPT = new TH1F("PUPPIjet_pt", "PUPPIjet P_{T}", 200, 0.0, 200);
   
 //----------------------------------------------------------------------------
 //  JEC
@@ -98,8 +108,10 @@ int main ( int argc, char *argv[] )
   std::vector<JetCorrectorParameters> vPar;
 
   std::string path = "../data/"; 
-  std::string era = "Delphes_V1_MC";
-  std::string alias = "AK4PF";
+  //std::string era = "Delphes_V1_MC";
+  //std::string era = "PhaseI_50PU_V1_MC";
+  std::string era = "PhaseII_140PU_V1_MC";
+  std::string alias = "RawJet";
   L1JetPar = new JetCorrectorParameters(path + era + "_L1FastJet_"    + alias + ".txt");
   L2JetPar = new JetCorrectorParameters(path + era + "_L2Relative_"   + alias + ".txt");
   L3JetPar = new JetCorrectorParameters(path + era + "_L3Absolute_"   + alias + ".txt");
@@ -119,23 +131,73 @@ int main ( int argc, char *argv[] )
     if (entry % 500 == 0)
       std::cout << "--------------------" << entry << std::endl;
 
-    
-    // If event contains at least 1 jet
-    if(branchJet->GetEntries() > 0)
+    for (int i = 0; i < branchRawJet->GetEntries(); ++i)
     {
       // Take first jet
-      Jet *jet = (Jet*) branchJet->At(0);
+      Jet *jet = (Jet*) branchRawJet->At(i);
       
       // Plot jet transverse momentum
-      histJet1PT->Fill(jet->PT);
-      histJet1PTCorr->Fill(jet->PT * correction(*jet, JetCorrector, branchRho));
+      histRawJetPT->Fill(jet->PT);
+      histRawJetPTCorr->Fill(jet->PT * correction(*jet, JetCorrector, branchRho));
+    }
+    
+    for (int i = 0; i < branchRawJetNoPU->GetEntries(); ++i)
+    {
+      // Take first jet
+      Jet *jet = (Jet*) branchRawJetNoPU->At(i);
+      
+      // Plot jet transverse momentum
+      histRawJetNoPUPT->Fill(jet->PT);
+    }
+
+    for (int i = 0; i < branchGenJet->GetEntries(); ++i)
+    {
+      // Take first jet
+      Jet *jet = (Jet*) branchGenJet->At(i);
+      
+      // Plot jet transverse momentum
+      histGenJetPT->Fill(jet->PT);
+      
+    }
+
+    for (int i = 0; i < branchJet->GetEntries(); ++i)
+    {
+      // Take first jet
+      Jet *jet = (Jet*) branchJet->At(i);
+      
+      // Plot jet transverse momentum
+      histJetPT->Fill(jet->PT);
+      
+    }
+    for (int i = 0; i < branchPileUpJetIDJet->GetEntries(); ++i)
+    {
+      // Take first jet
+      Jet *jet = (Jet*) branchPileUpJetIDJet->At(i);
+      
+      // Plot jet transverse momentum
+      histPUIDJetPT->Fill(jet->PT);
+      
+    }
+
+    for (int i = 0; i < branchPuppiJet->GetEntries(); ++i)
+    {
+      // Take first jet
+      Jet *jet = (Jet*) branchPuppiJet->At(i);
+      
+      // Plot jet transverse momentum
+      histPUPPIJetPT->Fill(jet->PT);
     }
 
   } // End of looping event
 
   // Saving resulting histograms
-  histJet1PT->Write();
-  histJet1PTCorr->Write();
+  histRawJetPT->Write();
+  histRawJetPTCorr->Write();
+  histRawJetNoPUPT->Write();
+  histGenJetPT->Write();
+  histJetPT->Write();
+  histPUIDJetPT->Write();
+  histPUPPIJetPT->Write();
 
   outputfile.Close();
   return EXIT_SUCCESS;
