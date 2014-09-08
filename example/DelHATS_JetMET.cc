@@ -213,17 +213,16 @@ double correction(Jet &iJet, FactorizedJetCorrector *iJetCorr, const TClonesArra
   iJetCorr->setJetE  (iJet.P4().E());
   iJetCorr->setJetA  (iJet.AreaP4().Pt());
 
-  double rho = -999;
+  double rho = 0.0;
+  int avgcount = 0;
   for (int i = 0; i < branchRho->GetEntries(); ++i)
   {
     Rho *iRho = (Rho*) branchRho->At(i);
-    if( fabs(iJet.Eta) >= iRho->Edges[0] &&
-        fabs(iJet.Eta) < iRho->Edges[1])
-    {
-      rho = iRho->Rho;
-      break;
-    }
+    rho += iRho->Rho;
+    avgcount++;
   }
+  rho = rho / avgcount;
+
   assert(rho != -999.);
   iJetCorr->setRho(rho);
 
